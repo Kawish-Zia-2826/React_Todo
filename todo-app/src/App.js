@@ -1,51 +1,89 @@
-import React ,{useState,useRef, use}from 'react'
+import React, { useState, useRef } from 'react';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import Swal from 'sweetalert2';
+
 
 const App = () => {
+  const [task, setTask] = useState([]);
+  const [showSubmit, setShowSubmit] = useState(true);
+  const [showUpdate, setShowUpdate] = useState(false);
+  const [updateId, setUpdateId] = useState(null);
+  const ref = useRef("");
+  const showToast = (msg, icon = "success") => {
+    Swal.fire({
+      toast: true,
+      position: 'top-end',
+      icon: icon,
+      title: msg,
+      showConfirmButton: false,
+      timer: 2000,
+      timerProgressBar: true,
+    });
+  };
+  
+  const handleSubmit = () => {
+    const value = ref.current.value.trim();
+    if (value === "") {
+      showToast("Please enter a task", "warning");
+      return;
+    }
+    setTask([...task, value]);
+    ref.current.value = "";
+    showToast("Task added successfully", "success");
+  };
 
+  const handleDelete = (id) => {
+    setTask(task.filter((_, index) => index !== id));
+    showToast("Task deleted", "info");
+  };
 
-  //  const [text, setText] = useState("")
-   const [task, settask] = useState([])
-   const ref = useRef("")
-   function show() {
-    //  console.log(text);
+  const handleEdit = (index) => {
+    ref.current.value = task[index];
+    setUpdateId(index);
+    setShowSubmit(false);
+    setShowUpdate(true);
+  };
 
-    ref.current.value != "" ? settask([...task,ref.current.value]): alert("please enter a value")
-    ref.current.value = ""
-     
-     }
-console.log(task);
+  const handleUpdate = () => {
+    const value = ref.current.value.trim();
+    if (value === "") {
+      showToast("Cannot update with empty value","warning");
+      return;
+    }
+    const updatedTasks = [...task];
+    updatedTasks[updateId] = value;
+    setTask(updatedTasks);
+    setShowSubmit(true);
+    setShowUpdate(false);
+    showToast("Task updated", "success");
+    ref.current.value = "";
+  };
 
-     function deletee(e) {
-      let id = e.target.id
-      console.log(e.target.id);
-      // e.target.parentNode.remove()
-
-      settask([...task.filter((item) => item !== id)])
-
-      
-      
-     }
-
-     function update(e) {
-      console.log(e.target.value);
-      ref.current.value = e.target.value
-      settask(task.indexOf(e.target.value))
-     }
-   
   return (
-    <>
-    <input type="text" ref={ref} />
-    <button onClick={show}>submit</button>
-    <ul>
-      
-    {task.map((item,index) => {
-      return <li key={index}>{item} <button onClick={deletee} id={item}>delete({index})</button> <button onClick={update} value={item}>update({item})</button></li>
-    })}
+    <div className="container mt-5">
+      <h2 className="mb-3">📝 Task Manager</h2>
+      <div className="d-flex mb-3">
+        <input type="text" ref={ref} className="form-control me-2" placeholder="Enter task" />
+        {showSubmit && (
+          <button className="btn btn-primary" onClick={handleSubmit}>Submit</button>
+        )}
+        {showUpdate && (
+          <button className="btn btn-warning" onClick={handleUpdate}>Update</button>
+        )}
+      </div>
+      <ul className="list-group">
+        {task.map((item, index) => (
+          <li className="list-group-item d-flex justify-content-between align-items-center" key={index}>
+            {item}
+            <div>
+              <button className="btn btn-danger btn-sm me-2" onClick={() => handleDelete(index)}>Delete</button>
+              <button className="btn btn-secondary btn-sm" onClick={() => handleEdit(index)}>Edit</button>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+};
 
-    </ul>
-
-    </>
-  )
-}
-
-export default App
+export default App;
